@@ -1,5 +1,4 @@
-# Clase base para declarar y validar los datos que
-# llegan en las peticiones (JSON) o salen en las respuestas.
+# Schema for the requests and responses.
 from pydantic import BaseModel
 
 
