@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY scripts/ ./scripts/
+
+# 6 h = 21600 s (cambia a gusto)
+ENV SLEEP_SECONDS=21600
+
+CMD bash -c 'while true; do \
+echo "[RUN] $(date)"; \
+python -m scripts.pipeline || echo "[ERROR] pipeline failed"; \
+sleep $SLEEP_SECONDS; \
+done'

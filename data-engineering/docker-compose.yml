@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./embeddings/chroma:/data
+    command: ["--path", "/data"]
+    restart: unless-stopped
+
+  etl:
+    build:
+      context: .
+      dockerfile: Dockerfile.etl
+    container_name: agro-etl
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+      - ./embeddings/chroma:/app/embeddings/chroma
+    depends_on:
+      - chroma
+    restart: unless-stopped
