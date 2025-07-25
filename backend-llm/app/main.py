@@ -5,7 +5,7 @@ from fastapi import FastAPI
 import os
 
 from app.core.settings import settings  # load environment variables
-from app.api.v1 import chat, health  # import routers
+from app.api.v1 import chat, health, embed  # import routers
 
 # Sets the ollama SDK to see OLLAMA_HOST
 os.environ["OLLAMA_HOST"] = settings.OLLAMA_HOST
@@ -19,3 +19,4 @@ app = FastAPI(
 # Configure routers
 app.include_router(health.router)
 app.include_router(chat.router)
+app.include_router(embed.router)
