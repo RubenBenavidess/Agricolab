@@ -87,4 +87,4 @@ def chunk_all():
 
         print(f"[CHUNK] {fname}: escritos {written} chunks")
 
-    print(f"[CHUNK] Total chunks escritos: {sum(1 for _ in open(out_path, encoding='utf-8'))}")
+    print(f"[CHUNK] END: {len(os.listdir(CHUNK_DIR))} documentos con chunks generados.")
