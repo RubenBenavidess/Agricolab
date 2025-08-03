@@ -9,37 +9,32 @@ from embedding_utils.embedder import get_embeddings
 
 def embed_all():
     """
-    Por cada .jsonl en CHUNK_DIR, extrae los textos, genera embeddings en lotes
-    y los añade a ChromaDB. Se saltan archivos vacíos o con errores.
+    Reads JSONL files from CHUNK_DIR, generates embeddings, and adds them to the ChromaDB collection.
     """
     CHUNK_DIR   = env("CHUNK_DIR")
     CHROMA_PATH = env("CHROMA_PATH")
 
-    # Asegura que exista la carpeta de persistencia de ChromaDB
     ensure_dirs(CHROMA_PATH)
 
-    # Conecta/crea la colección
     client = chromadb.PersistentClient(path=CHROMA_PATH)
     collection = client.get_or_create_collection(
         name="agro_docs",
         metadata={"hnsw:space": "cosine"}
     )
 
-    # Lista y recorre cada archivo JSONL de chunks
     paths = sorted(glob.glob(os.path.join(CHUNK_DIR, "*.jsonl")))
-    print(f"[DEBUG] Archivos a embedear ({len(paths)}): {paths}")
+    print(f"[DEBUG] Files to embed ({len(paths)}): {paths}")
 
     for path in paths:
         print(f"[DEBUG] Embedding: {path}")
         docs, metas, ids = [], [], []
 
-        # Lee cada línea (cada chunk)
         with open(path, encoding="utf-8") as f:
             for line in f:
                 try:
                     item = json.loads(line)
                 except json.JSONDecodeError as e:
-                    print(f"[WARNING] JSON mal formado en {path}: {e}")
+                    print(f"[WARNING] Malformed JSON in {path}: {e}")
                     continue
 
                 text    = item.get("text", "").strip()
@@ -51,23 +46,20 @@ def embed_all():
                 metas.append({k:v for k,v in item.items() if k not in ("text",)})
                 ids.append(chunk_id)
 
-        # Si no hay docs, saltamos este archivo
         if not docs:
-            print(f"[WARNING] No hay chunks en {path}, saltando.")
+            print(f"[WARNING] No chunks found in {path}, skipping.")
             continue
 
-        # Genera embeddings y maneja posibles errores
         try:
             vectors = get_embeddings(docs)
         except Exception as e:
-            print(f"[ERROR] Falló embed_documents en {path}: {e}")
+            print(f"[ERROR] embed_documents failed for {path}: {e}")
             continue
 
         if not vectors:
-            print(f"[WARNING] embedder devolvió 0 vectores para {path}, saltando.")
+            print(f"[WARNING] embedder returned 0 vectors for {path}, skipping.")
             continue
 
-        # Añade a la colección, capturando errores para no detener todo
         try:
             collection.add(
                 ids=ids,
@@ -76,8 +68,8 @@ def embed_all():
                 embeddings=vectors
             )
         except Exception as e:
-            print(f"[ERROR] Falló collection.add para {path}: {e}")
+            print(f"[ERROR] collection.add failed for {path}: {e}")
             continue
 
     total = collection.count()
-    print(f"[EMBED] Total de chunks en la colección: {total}")
+    print(f"[EMBED] Total chunks in collection: {total}")

@@ -1,3 +1,4 @@
 # embedding_utils
 
-Paquete de utilidades para generar embeddings con LangChain/HuggingFace.
+Utility package for generating embeddings with LangChain/HuggingFace.
+

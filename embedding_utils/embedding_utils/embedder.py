@@ -6,8 +6,10 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 def _make_embedder() -> HuggingFaceEmbeddings:
     """
-    Crea una instancia de HuggingFaceEmbeddings leyendo las variables de entorno
-    EMBED_MODEL y EMBED_CACHE_FOLDER (o usa ~/.cache/hf si no existe).
+    Creates and returns an instance of HuggingFaceEmbeddings using environment variables for configuration.
+    If the cache folder does not exist, it will be created automatically.
+    Returns:
+        HuggingFaceEmbeddings: An initialized HuggingFaceEmbeddings object with the specified model and cache folder.
     """
     model_name = os.getenv(
         "EMBED_MODEL",
@@ -17,7 +19,7 @@ def _make_embedder() -> HuggingFaceEmbeddings:
         "EMBED_CACHE_FOLDER",
         str(Path.home() / ".cache" / "hf")
     )
-    # Asegura que exista el directorio de caché
+
     Path(cache_folder).mkdir(parents=True, exist_ok=True)
     return HuggingFaceEmbeddings(
         model_name=model_name,
@@ -27,10 +29,11 @@ def _make_embedder() -> HuggingFaceEmbeddings:
 
 def get_embeddings(texts: list[str]) -> list[list[float]]:
     """
-    Genera embeddings para una lista de textos usando LangChain/HuggingFaceEmbeddings.
-
-    :param texts: Lista de cadenas a embeddizar.
-    :return: Lista de vectores de embedding correspondientes.
+    Generates embeddings for a list of texts using LangChain/HuggingFaceEmbeddings.
+    Args:
+        texts (list[str]): List of strings to generate embeddings for.
+    Returns:
+        list[list[float]]: List of embedding vectors corresponding to the input texts.
     """
     embedder = _make_embedder()
     return embedder.embed_documents(texts)
@@ -38,10 +41,11 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
 
 def get_embedding(text: str) -> list[float]:
     """
-    Genera el embedding de un solo texto.
-
-    :param text: Cadena de texto a embeddizar.
-    :return: Vector de embedding.
+    Generates embeddings for single text using LangChain/HuggingFaceEmbeddings.
+    Args:
+        texts (str): String to generate embeddings for.
+    Returns:
+        list[list[float]]: List of embedding vectors corresponding to the input text
     """
     embedder = _make_embedder()
     return embedder.embed_query(text)

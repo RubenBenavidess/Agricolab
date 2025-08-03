@@ -3,6 +3,10 @@ import pdfplumber
 from scripts.utils import env, ensure_dirs
 
 def extract_text(pdf_path):
+    """
+    Extracts text from a PDF file using pdfplumber.
+    Returns a list of dictionaries with page number and text content.
+    """
     pages = []
     with pdfplumber.open(pdf_path) as pdf:
         for i, page in enumerate(pdf.pages):
@@ -11,6 +15,10 @@ def extract_text(pdf_path):
     return pages
 
 def extract_all():
+    """
+    Processes all PDF files in RAW_DIR, extracting text and saving to INTERIM_DIR.
+    Creates a JSON file for each PDF with page-wise text content.
+    """
     RAW_DIR = env("RAW_DIR")
     INTERIM_DIR = env("INTERIM_DIR")
     ensure_dirs(INTERIM_DIR)

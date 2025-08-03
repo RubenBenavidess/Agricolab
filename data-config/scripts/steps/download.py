@@ -1,16 +1,3 @@
-"""
-steps/download.py   –   descarga PDF/CSV/XLSX listados indirectamente.
-
-Cambios clave
--------------
-1. safe_str()       – convierte NaN en "".
-2. links_from_sitemap() lee sitemaps .xml o .gz.
-3. find_links()     – mismo dominio, filtra tel:/mailto:, profundidad.
-4. is_file()        – detecta .pdf|.csv|.xlsx antes de ?, #, etc.
-5. FILTRO KW        – si el set filtrado por keywords queda vacío,
-                        se conserva el set original (evita “0 archivos”).
-"""
-
 import os, re, math, gzip, requests, xml.etree.ElementTree as ET
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
@@ -19,29 +6,35 @@ import pandas as pd
 
 from scripts.utils import env, ensure_dirs
 
-# ------------------------------------------------------------------ #
-# utilidades
-# ------------------------------------------------------------------ #
 def safe_str(val) -> str:
+    """
+    Converts a value to string, handling NaN as empty string.
+    """
     return "" if (isinstance(val, float) and math.isnan(val)) else str(val).strip()
 
 
 def same_domain(a: str, b: str) -> bool:
+    """
+    Checks if two URLs belong to the same domain, ignoring port numbers.
+    """
     return urlparse(a).netloc.split(":")[0].lower() == urlparse(b).netloc.split(":")[0].lower()
 
 
 def is_file(u: str, exts: tuple[str, ...]) -> bool:
+    """
+    Checks if a URL points to a file with one of the specified extensions.
+    """
     u_low = u.lower()
     return any(re.search(rf"\.{e}(\?|#|$)", u_low) for e in exts)
 
 
 SKIP_SCHEMES = ("mailto:", "tel:", "javascript:", "#")
 
-
-# ------------------------------------------------------------------ #
-# sitemap
-# ------------------------------------------------------------------ #
 def links_from_sitemap(url: str, exts=("pdf",)) -> set[str]:
+    """
+    Extracts file links from a sitemap XML or gzipped XML.
+    Returns a set of URLs that match the specified file extensions.
+    """
     try:
         r = requests.get(url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
         r.raise_for_status()
@@ -53,11 +46,17 @@ def links_from_sitemap(url: str, exts=("pdf",)) -> set[str]:
         print("[WARN sitemap]", url, e)
         return set()
 
-
-# ------------------------------------------------------------------ #
-# crawler superficial
-# ------------------------------------------------------------------ #
 def find_links(base_url: str, extensions=("pdf",), depth=2, visited=None) -> set[str]:
+    """
+    Recursively finds links on a webpage, filtering by file extensions.
+    Args:
+        base_url (str): The base URL to start crawling from.
+        extensions (tuple[str, ...]): File extensions to filter links by.
+        depth (int): How many levels deep to crawl.
+        visited (set[str]): Set of already visited URLs to avoid loops.
+    Returns:
+        set[str]: Set of URLs that match the specified file extensions.
+    """
     visited = visited or set()
     if base_url in visited:
         return set()
@@ -84,10 +83,13 @@ def find_links(base_url: str, extensions=("pdf",), depth=2, visited=None) -> set
     return files
 
 
-# ------------------------------------------------------------------ #
-# paso principal
-# ------------------------------------------------------------------ #
 def download_all():
+    """
+    Downloads files from URLs specified in a CSV.
+    The CSV should contain columns for Base URL, Filetypes to grab, Spanish Keywords, Crawl Depth, and Sitemap URL.
+    Downloads files to the RAW_DIR specified in the environment.
+    """
+
     SHEET_CSV_URL = env("SHEET_CSV_URL")
     RAW_DIR = env("RAW_DIR")
     ensure_dirs(RAW_DIR)
@@ -100,12 +102,10 @@ def download_all():
         if not base_url:
             continue
 
-        # extensiones
         filetypes = [t.strip().lower()
             for t in safe_str(row.get("Filetypes to grab (pdf,csv,xlsx)", "pdf")).split(",")]
         exts = tuple(e for e in ("pdf", "csv", "xlsx") if e in filetypes)
 
-        # palabras clave
         kws = [k.strip() for k in safe_str(row.get("Spanish Keywords")).split(",") if k.strip()]
         regex = re.compile("|".join(map(re.escape, kws)), re.IGNORECASE) if kws else None
 
@@ -117,12 +117,12 @@ def download_all():
 
         if regex:
             filtered = {u for u in links if regex.search(u.lower())}
-            if filtered:   # solo aplica si hay coincidencias
+            if filtered:
                 links = filtered
 
         all_links |= links
 
-    print(f"[DOWNLOAD] se encontraron {len(all_links)} archivos")
+    print(f"[DOWNLOAD] {len(all_links)} found links to download")
 
     for url in tqdm(sorted(all_links), desc="Downloading"):
         fname = url.split("/")[-1].split("?")[0]
