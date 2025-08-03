@@ -2,9 +2,16 @@ import os
 import pytest
 from embedding_utils import get_embeddings, get_embedding
 
+"""
+Pytest fixture that automatically sets environment variables for testing.
+This fixture uses `monkeypatch` to set the following environment variables:
+- "EMBED_MODEL": Forces the use of a small embedding model ("sentence-transformers/all-MiniLM-L6-v2") for faster tests.
+- "EMBED_CACHE_FOLDER": Sets the cache folder for embeddings to "./tmp/.hf" for local tests.
+
+The fixture is applied automatically to all tests in the module.
+"""
 @pytest.fixture(autouse=True)
 def set_env(monkeypatch):
-    # Fuerza un modelo pequeño para tests rápidos
     monkeypatch.setenv("EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     monkeypatch.setenv("EMBED_CACHE_FOLDER", "./tmp/.hf")
 
