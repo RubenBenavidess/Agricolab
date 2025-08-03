@@ -1,0 +1,27 @@
+services:
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data-config/embeddings/chroma:/data
+    command: ["--path", "/data"]
+    restart: unless-stopped
+
+  etl:
+    build:
+      context: .
+      dockerfile: ./data-config/Dockerfile.etl
+    container_name: agro-etl
+    env_file: ./data-config/.env
+    volumes:
+      - ./data-config/data:/app/data
+      - ./data-config/embeddings/chroma:/app/embeddings/chroma
+    depends_on:
+      - chroma
+    restart: unless-stopped
+    cpus: 0.3   # tope CPU
+    mem_limit: 6g           # tope RAM
+    mem_reservation: 512m   # reserva garantizada
+    memswap_limit: 8g
