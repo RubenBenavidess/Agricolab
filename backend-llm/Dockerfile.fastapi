@@ -1,0 +1,40 @@
+FROM python:3.11-slim
+
+# Virtual environment established
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Load system libraries 
+RUN apt-get update && apt-get install -y \
+    curl pciutils lshw && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create workspace
+WORKDIR /app
+
+# Install ollama
+RUN curl -fsSL https://ollama.com/install.sh | sh 
+
+# Pull gemma 3:4b and start app
+COPY backend-llm/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Script to pull langchain model for embeddings
+COPY embedding_utils /app/embedding_utils
+
+# Create a virtual environment
+RUN python -m venv $VIRTUAL_ENV
+
+# Copy app
+COPY backend-llm/requirements.txt .
+COPY backend-llm/app/ ./app
+# Load environment and install langchain model dependencies
+RUN pip install --upgrade pip && 
+    pip install --no-cache-dir /app/embedding_utils &&
+    pip install -r backend-llm/requirements.txt
+
+# Define exposing port
+EXPOSE 8000
+
+# Command to run when container starts
+CMD ["/app/start.sh"]

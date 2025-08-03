@@ -1,0 +1,31 @@
+# — Virtual Environments —
+.venv/
+
+# — Python Stuff —
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# — Variables and Secrets —
+.env
+.env.*
+
+# — Logs —
+*.log
+
+# — Github Stuff — 
+.gitignore
+*.md
+
+# — Tests —
+tests/
+.pre-commit-config.yaml
+
+
+# — IDE settings —
+.vscode/
+.idea/
+
+# Makefile
+Makefile
