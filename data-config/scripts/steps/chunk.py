@@ -86,3 +86,5 @@ def chunk_all():
                     written += 1
 
         print(f"[CHUNK] {fname}: escritos {written} chunks")
+
+    print(f"[CHUNK] Total chunks escritos: {sum(1 for _ in open(out_path, encoding='utf-8'))}")
