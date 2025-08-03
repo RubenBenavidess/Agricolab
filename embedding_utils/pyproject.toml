@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "embedding-utils"
+version = "0.1.0"
+description = "Utilidades de embeddings con LangChain/HuggingFace"
+authors = ["dr00p3r <joancobe64@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+langchain-huggingface = ">=0.3.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

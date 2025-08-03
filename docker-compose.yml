@@ -1,0 +1,34 @@
+services:
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data-config/embeddings/chroma:/data
+    command: ["--path", "/data"]
+    restart: unless-stopped
+
+  etl:
+    build:
+      context: .
+      dockerfile: ./data-config/Dockerfile.etl
+    container_name: agro-etl
+    env_file: ./data-config/.env
+    volumes:
+      - ./data-config/data:/app/data
+      - ./data-config/embeddings/chroma:/app/embeddings/chroma
+    depends_on:
+      - chroma
+    restart: unless-stopped
+    cpus: 0.3               # max CPU usage
+    mem_limit: 6g           # max memory usage
+    memswap_limit: 8g       # max memory + swap usage
+    mem_reservation: 512m   # minimum memory reserved
+    oom_kill_disable: true   # disable OOM killer
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"      # max log file size
+        max-file: "3"        # max number of log files
+    command: ["python", "-m", "scripts.pipeline"]
