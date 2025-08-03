@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y git poppler-utils curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copia el módulo compartido de embeddings
+COPY embedding_utils /app/embedding_utils
+
+# Copia el requirements del pipeline
+COPY data-config/requirements.txt /app/requirements.txt
+
+# Instala primero embedding_utils y luego el resto
+RUN pip install --no-cache-dir /app/embedding_utils \
+    && pip install --no-cache-dir -r /app/requirements.txt
+
+# Copia el código del pipeline
+COPY data-config/scripts/ /app/scripts/
+
+ENV SLEEP_SECONDS=21600
+
+CMD bash -c 'while true; do \
+    echo "[RUN] $(date)"; \
+    python -m scripts.pipeline || echo "[ERROR] pipeline failed"; \
+    sleep $SLEEP_SECONDS; \
+done'
