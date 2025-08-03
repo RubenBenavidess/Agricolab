@@ -6,7 +6,7 @@ from embedding_utils import get_embeddings, get_embedding
 def set_env(monkeypatch):
     # Fuerza un modelo pequeño para tests rápidos
     monkeypatch.setenv("EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-    monkeypatch.setenv("EMBED_CACHE_FOLDER", "/tmp/.hf")
+    monkeypatch.setenv("EMBED_CACHE_FOLDER", "./tmp/.hf")
 
 def test_get_embedding_shape():
     vec = get_embedding("Hola mundo")
