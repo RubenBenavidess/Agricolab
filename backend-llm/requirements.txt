@@ -42,3 +42,5 @@ virtualenv==20.32.0
 watchfiles==1.1.0
 websockets==15.0.1
 wheel==0.45.1
+chromadb==1.0.15
+sentence-transformers==5.0.0
