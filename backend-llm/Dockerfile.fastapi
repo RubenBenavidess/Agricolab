@@ -1,18 +1,19 @@
-FROM python:3.11-slim
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+
+# Install Python y basic dependencies
+RUN apt-get update && apt-get install -y \
+    python3.11 python3-pip python3.11-venv \
+    curl pciutils lshw && \
+    rm -rf /var/lib/apt/lists/*
 
 # Virtual environment established
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Load system libraries 
-RUN apt-get update && apt-get install -y \
-    curl pciutils lshw && \
-    rm -rf /var/lib/apt/lists/*
-
 # Create workspace
 WORKDIR /app
 
-# Install ollama
+# Install ollama (usando el mismo método)
 RUN curl -fsSL https://ollama.com/install.sh | sh 
 
 # Pull gemma 3:4b and start app
@@ -23,15 +24,16 @@ RUN chmod +x /app/start.sh
 COPY embedding_utils /app/embedding_utils
 
 # Create a virtual environment
-RUN python -m venv $VIRTUAL_ENV
+RUN python3.11 -m venv $VIRTUAL_ENV # Usa python3.11 para crear el venv
 
 # Copy app
 COPY backend-llm/requirements.txt .
 COPY backend-llm/app/ ./app
+
 # Load environment and install langchain model dependencies
-RUN pip install --upgrade pip && 
-    pip install --no-cache-dir /app/embedding_utils &&
-    pip install -r backend-llm/requirements.txt
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir /app/embedding_utils \
+    && pip install -r /app/requirements.txt
 
 # Define exposing port
 EXPOSE 8000

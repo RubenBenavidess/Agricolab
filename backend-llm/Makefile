@@ -1,11 +1,8 @@
-run:        ## Init API
-	uvicorn app.main:app --reload --port 8000
+build:        ## Build image
+	sudo docker build -f backend-llm/Dockerfile.fastapi -t fastapi-image .
 
-test:       ## Executes Pytest
-	python -m pytest -q
+run:       	  ## Create container and run it
+	sudo docker run --gpus all --name agricolab_api -p 8080:8000 fastapi-image
 
-lint:       ## Checks linter with Ruff
-	ruff check .
+test:	# TODO
 
-freeze:     ## Updates requirements.txt
-	pip freeze > requirements.txt

@@ -58,7 +58,7 @@ def rag(req: RagRequest) -> RagResponse:
     context = "\n\n".join(context_blocks)
 
     full_prompt = (
-        "Usa el siguiente contexto para responder de forma concisa:\n\n"
+        "Usa el siguiente contexto para responder de forma concisa si aplica para la pregunta:\n\n"
         f"{context}\n\n"
         f"Pregunta: {question}\n"
         "Respuesta:"
