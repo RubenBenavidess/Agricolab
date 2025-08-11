@@ -20,7 +20,7 @@ def chunk_text(text: str, chunk_size=CHUNK_SIZE, overlap=OVERLAP):
     if n <= chunk_size:
         yield " ".join(words)
         return
-
+    
     start = 0
     while start < n:
         end = min(start + chunk_size, n)

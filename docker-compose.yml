@@ -2,33 +2,81 @@ services:
   chroma:
     image: chromadb/chroma:latest
     container_name: chroma
-    ports:
-      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/data
+      - ANONYMIZED_TELEMETRY=FALSE
+    command: ["run", "--host", "0.0.0.0", "--port", "8000"]
     volumes:
       - ./data-config/embeddings/chroma:/data
-    command: ["--path", "/data"]
+    ports:
+      - "8000:8000"
+    healthcheck:
+      # puedes dejar el TCP; aquí un check HTTP al API público
+      test: ["CMD", "bash", "-lc", "curl -fsS http://localhost:8000/api/v1 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     restart: unless-stopped
+    networks: [embed_net]
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      # <- modelos persistentes (evita descargas en rebuilds)
+      - ./data-config/ollama:/root/.ollama
+    # Si usarás GPU:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    restart: unless-stopped
+    networks: [embed_net]
 
   etl:
     build:
       context: .
-      dockerfile: ./data-config/Dockerfile.etl
     container_name: agro-etl
     env_file: ./data-config/.env
+    environment:
+      - CHROMA_SERVER_HOST=chroma
+      - CHROMA_SERVER_HTTP_PORT=8000
     volumes:
       - ./data-config/data:/app/data
       - ./data-config/embeddings/chroma:/app/embeddings/chroma
     depends_on:
-      - chroma
+      chroma:
+        condition: service_healthy
     restart: unless-stopped
-    cpus: 0.3               # max CPU usage
-    mem_limit: 6g           # max memory usage
-    memswap_limit: 8g       # max memory + swap usage
-    mem_reservation: 512m   # minimum memory reserved
-    oom_kill_disable: true   # disable OOM killer
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"      # max log file size
-        max-file: "3"        # max number of log files
-    command: ["python", "-m", "scripts.pipeline"]
+    networks: [embed_net]
+
+  api:
+    container_name: agricolab_api
+    build:
+      context: .
+      dockerfile: ./backend-llm/Dockerfile.fastapi
+    ports:
+      - "8001:8000"
+    environment:
+      - CHROMA_SERVER_HOST=chroma
+      - CHROMA_SERVER_HTTP_PORT=8000
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      chroma:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    # GPU si la necesitas dentro de la API:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    networks: [embed_net]
+
+networks:
+  embed_net:

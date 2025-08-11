@@ -12,7 +12,7 @@ The fixture is applied automatically to all tests in the module.
 """
 @pytest.fixture(autouse=True)
 def set_env(monkeypatch):
-    monkeypatch.setenv("EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+    monkeypatch.setenv("EMBED_MODEL", "BAAI/bge-m3")
     monkeypatch.setenv("EMBED_CACHE_FOLDER", "./tmp/.hf")
 
 def test_get_embedding_shape():

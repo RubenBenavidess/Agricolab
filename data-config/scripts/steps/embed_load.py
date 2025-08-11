@@ -5,6 +5,7 @@ import uuid
 
 import chromadb
 from scripts.utils import env, ensure_dirs
+print("[DEBUG] EMBEDDING Importing get_embeddings from embedding_utils.embedder")
 from embedding_utils.embedder import get_embeddings
 
 def embed_all():
@@ -16,12 +17,14 @@ def embed_all():
 
     ensure_dirs(CHROMA_PATH)
 
+    print(f"[DEBUG] Creating ChromaDB client at {CHROMA_PATH}")
     client = chromadb.PersistentClient(path=CHROMA_PATH)
+    print(f"[DEBUG] Client created")
+    print(f"[DEBUG] Getting or creating collection 'agro_docs'")
     collection = client.get_or_create_collection(
         name="agro_docs",
         metadata={"hnsw:space": "cosine"}
     )
-
     paths = sorted(glob.glob(os.path.join(CHUNK_DIR, "*.jsonl")))
     print(f"[DEBUG] Files to embed ({len(paths)}): {paths}")
 

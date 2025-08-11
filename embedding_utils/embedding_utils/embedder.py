@@ -13,7 +13,7 @@ def _make_embedder() -> HuggingFaceEmbeddings:
     """
     model_name = os.getenv(
         "EMBED_MODEL",
-        "sentence-transformers/all-MiniLM-L6-v2"
+        "BAAI/bge-m3"
     )
     cache_folder = os.getenv(
         "EMBED_CACHE_FOLDER",
