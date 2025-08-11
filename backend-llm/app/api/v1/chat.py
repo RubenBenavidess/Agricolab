@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException
 
 # Ollama for HTTP calls to the Ollama daemon
-import ollama
+from app.core.ollama_client import get_ollama_client
 
 # To load the model name
 from app.core.settings import settings  
@@ -15,7 +15,8 @@ from app.schemes.chat_model import (
 
 def chat(chatRequest: ChatRequest):
     try:
-        res = ollama.chat(
+        client = get_ollama_client()
+        res = client.chat(
             model=settings.MODEL_NAME,
             messages=[{"role": "user", "content": chatRequest.prompt}],
             stream=False,
