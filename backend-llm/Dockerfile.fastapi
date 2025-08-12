@@ -1,28 +1,32 @@
-#Dockerfile.fastapi
 FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
 
-# Install Python y basic dependencies
+# 1) Necessary packages
 RUN apt-get update && apt-get install -y \
-    python3.11 python3-pip python3.11-venv \
-    curl pciutils lshw && \
-    rm -rf /var/lib/apt/lists/*
+    python3.11 python3.11-venv python3-pip \
+    curl pciutils lshw \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2) Enviroment Variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /app
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-RUN python -m venv $VIRTUAL_ENV \
-    && pip install --upgrade pip
+# 3) Create venv with python3.11
+RUN python3.11 -m venv "$VIRTUAL_ENV" \
+    && "$VIRTUAL_ENV/bin/pip" install --upgrade pip setuptools wheel
 
-# Dependencys
+# 4) Install dependencies
 COPY backend-llm/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN "$VIRTUAL_ENV/bin/pip" install --no-cache-dir -r requirements.txt
 
-# Embedding library
+# 5) Copy embeddings utils
 COPY embedding_utils /app/embedding_utils
-RUN pip install --no-cache-dir /app/embedding_utils
+RUN "$VIRTUAL_ENV/bin/pip" install --no-cache-dir /app/embedding_utils
 
-# App
+# 6) App
 COPY backend-llm/app/ ./app
 
 EXPOSE 8000
