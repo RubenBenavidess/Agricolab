@@ -12,11 +12,11 @@ services:
     ports:
       - "8000:8000"
     healthcheck:
-      # puedes dejar el TCP; aquí un check HTTP al API público
-      test: ["CMD", "bash", "-lc", "curl -fsS http://localhost:8000/api/v1 || exit 1"]
-      interval: 10s
+      test: ["CMD", "/bin/bash", "-c", "cat < /dev/tcp/127.0.0.1/8000"]
+      interval: 15s
       timeout: 3s
-      retries: 3
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
     networks: [embed_net]
 
