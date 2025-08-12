@@ -4,7 +4,6 @@ services:
     container_name: chroma
     environment:
       - IS_PERSISTENT=TRUE
-      - PERSIST_DIRECTORY=/data
       - ANONYMIZED_TELEMETRY=FALSE
     command: ["run", "--host", "0.0.0.0", "--port", "8000"]
     volumes:
@@ -12,11 +11,10 @@ services:
     ports:
       - "8000:8000"
     healthcheck:
-      test: ["CMD", "/bin/bash", "-c", "cat < /dev/tcp/127.0.0.1/8000"]
-      interval: 15s
+      test: ["CMD", "bash", "-c", "cat </dev/null >/dev/tcp/localhost/8000"]
+      interval: 10s
       timeout: 3s
-      retries: 10
-      start_period: 60s
+      retries: 3
     restart: unless-stopped
     networks: [embed_net]
 
