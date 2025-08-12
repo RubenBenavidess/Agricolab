@@ -1,12 +1,12 @@
 FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
 
-# 1) Paquetes necesarios
+# 1) Necessary packages
 RUN apt-get update && apt-get install -y \
     python3.11 python3.11-venv python3-pip \
     curl pciutils lshw \
     && rm -rf /var/lib/apt/lists/*
 
-# 2) Variables de entorno útiles
+# 2) Enviroment Variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     VIRTUAL_ENV=/opt/venv \
@@ -14,15 +14,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# 3) Crear venv con python3.11 y actualizar pip del venv
+# 3) Create venv with python3.11
 RUN python3.11 -m venv "$VIRTUAL_ENV" \
     && "$VIRTUAL_ENV/bin/pip" install --upgrade pip setuptools wheel
 
-# 4) Dependencias de tu app
+# 4) Install dependencies
 COPY backend-llm/requirements.txt .
 RUN "$VIRTUAL_ENV/bin/pip" install --no-cache-dir -r requirements.txt
 
-# 5) Librería de embeddings
+# 5) Copy embeddings utils
 COPY embedding_utils /app/embedding_utils
 RUN "$VIRTUAL_ENV/bin/pip" install --no-cache-dir /app/embedding_utils
 
